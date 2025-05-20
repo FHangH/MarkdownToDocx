@@ -10,6 +10,7 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 7535;
 const HOST = process.env.HOST || '192.168.1.31';
+const PUBLIC_IP = process.env.PUBLIC_IP || '192.168.1.31';
 const server = http.createServer(app);
 
 // 中间件设置
@@ -92,7 +93,7 @@ app.post('/convert', (req, res) =>
             maxBuffer: 1024 * 1024 * 10 // 增加缓冲区大小到10MB
         };
 
-        exec(`python "${pythonScript}" "${fileName}" "${mdDir}" "${docxDir}"`, 
+        exec(`python3 "${pythonScript}" "${fileName}" "${mdDir}" "${docxDir}"`, 
         execOptions, (error, stdout, stderr) => 
         {
             if (error) 
@@ -102,7 +103,8 @@ app.post('/convert', (req, res) =>
             }
             
             // 构建完整的Docx文件URL (包含主机和端口)
-            const docxUrl = `http://${HOST}:${PORT}/docx/${fileName}.docx`;
+            const docxUrl = `http://${PUBLIC_IP}:${PORT}/docx/${fileName}.docx`;
+            console.log(`Docx文件URL: ${docxUrl}`);
 
             res.json({ success: true, message: 'Docx file generated successfully', url: docxUrl });
         });
@@ -122,13 +124,13 @@ app.post('/convert', (req, res) =>
 
 // 在应用启动时添加检查
 const checkDependencies = () => {
-    exec('python --version', (error) => {
+    exec('python3 --version', (error) => {
         if (error) {
             console.error('Python is not installed or not in PATH');
             process.exit(1);
         }
         
-        exec('python -c "import pypandoc"', (error) => {
+        exec('python3 -c "import pypandoc"', (error) => {
             if (error) {
                 console.error('pypandoc is not installed. Please install it using: pip install pypandoc');
                 process.exit(1);
