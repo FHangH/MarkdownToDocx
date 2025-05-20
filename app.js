@@ -16,7 +16,9 @@ const server = http.createServer(app);
 app.use(express.json({ limit: '50mb' })); // 解析JSON请求体，增加大小限制
 // 在现有中间件下方添加
 app.use(express.urlencoded({ extended: true, limit: '50mb' })); // 增加URL编码请求体大小限制
-app.use(express.static('public')); // 提供静态文件访问
+//app.use(express.static('public')); // 提供静态文件访问
+app.use(express.static(path.join(__dirname, 'public')));
+app.use('/docx', express.static(path.join(__dirname, 'public', 'docx')));
 
 // 在文件顶部添加日期格式化函数
 function formatDate(date) 
@@ -48,8 +50,7 @@ app.post('/convert', (req, res) =>
 {
     try 
     {
-        const { markdown, api } = req.body;
-        const ip = api.split('/')[2].split(':')[0];
+        const { markdown } = req.body;
 
         console.log("接收到markdown的内容：", markdown);
 
@@ -101,9 +102,18 @@ app.post('/convert', (req, res) =>
                 console.error(`执行出错: ${error}`);
                 return res.status(500).json({ success: false, message: 'Conversion failed', url: null });
             }
+
+            // 检查文件是否实际生成
+            const docxFilePath = path.join(docxDir, `${fileName}.docx`);
+            if (!fs.existsSync(docxFilePath)) 
+            {
+                console.error('Docx file was not generated');
+                return res.status(500).json({ success: false, message: 'Docx file was not generated', url: null });
+            }
             
             // 构建完整的Docx文件URL (包含主机和端口)
-            const docxUrl = `http://${ip}:${PORT}/docx/${fileName}.docx`;
+            const docxUrl = `http://47.122.76.220:${PORT}/docx/${fileName}.docx`;
+            console.log(`Docx文件路径: ${docxFilePath}`);
             console.log(`Docx文件URL: ${docxUrl}`);
 
             res.json({ success: true, message: 'Docx file generated successfully', url: docxUrl });
@@ -112,7 +122,7 @@ app.post('/convert', (req, res) =>
         console.log("MD目录:", mdDir);
         console.log("DOCX目录:", docxDir);
         console.log("MD文件路径:", mdFilePath);
-        console.log("Python命令:", `python ${pythonScript} "${fileName}" "${mdDir}" "${docxDir}"`);
+        console.log("Python命令:", `python3 ${pythonScript} "${fileName}" "${mdDir}" "${docxDir}"`);
 
     } 
     catch (error) 
@@ -126,7 +136,7 @@ app.post('/convert', (req, res) =>
 const checkDependencies = () => {
     exec('python3 --version', (error) => {
         if (error) {
-            console.error('Python is not installed or not in PATH');
+            console.error('Python3 is not installed or not in PATH');
             process.exit(1);
         }
         
