@@ -10,7 +10,6 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 7535;
 const HOST = process.env.HOST || '192.168.1.31';
-const PUBLIC_IP = process.env.PUBLIC_IP || '192.168.1.31';
 const server = http.createServer(app);
 
 // 中间件设置
@@ -49,7 +48,8 @@ app.post('/convert', (req, res) =>
 {
     try 
     {
-        const { markdown } = req.body;
+        const { markdown, api } = req.body;
+        const ip = api.split('/')[2].split(':')[0];
 
         console.log("接收到markdown的内容：", markdown);
 
@@ -103,7 +103,7 @@ app.post('/convert', (req, res) =>
             }
             
             // 构建完整的Docx文件URL (包含主机和端口)
-            const docxUrl = `http://${PUBLIC_IP}:${PORT}/docx/${fileName}.docx`;
+            const docxUrl = `http://${ip}:${PORT}/docx/${fileName}.docx`;
             console.log(`Docx文件URL: ${docxUrl}`);
 
             res.json({ success: true, message: 'Docx file generated successfully', url: docxUrl });
