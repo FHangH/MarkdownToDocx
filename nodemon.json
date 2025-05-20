@@ -1,0 +1,14 @@
+{
+    "watch":
+    [
+        "*.js",
+        "*.json",
+        "public",
+        ".env"
+    ],
+    "ignore":
+    [
+        "node_modules",
+        ".gitignore"
+    ]
+}
